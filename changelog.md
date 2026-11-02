@@ -1,3 +1,35 @@
+# v2.0.0
+
+**English**
+
+* **Adaptive lead (Auto mode, now the default):** the lead is no longer a hard-coded 4.17 ms — it equals one *real* physics step of the current frame, so it automatically adapts to FPS, timewarp, lag spikes and Physics Bypass. It is always clamped to the measured frame interval.
+* **Presets:** `Custom`, `Vanilla` (no lead), `One Step`, `Half Frame`, `Full Frame` (every click on the first physics step). Presets override the individual lead settings for quick switching.
+* **Per-input leads:** optional separate scales for releases (orb holds, dash orb releases) and Player 2 in duals, 0–200%. `0%` keeps those inputs at their exact sub-frame time.
+* **Calibration / debug overlay:** localized HUD with measured frame time, current physics step (`n/total`), clicks moved to the first step and total latency saved. Auto/Manual lead can be calibrated against real numbers.
+* **End-of-attempt statistics:** localized end-screen line with click count, first-step count and saved milliseconds. Watermark is now `BF2` / `BF2+PB`.
+* **Safer timing:** leads are clamped to the frame interval; disabled on death, pause, editor/practice transitions, `Disable Mod` and in `Click on Steps` mode (full vanilla parity). Press/release order is guaranteed monotonic and is now covered by randomized unit tests.
+* All new UI strings are available in **English + Bahasa Indonesia** (`resources/lang/en.lang` / `id.lang`) with built-in fallbacks.
+* New bilingual architecture doc: [`docs/HOW_IT_WORKS.md`](docs/HOW_IT_WORKS.md) with a frame/step timing diagram.
+* Expanded engine-independent tests (50+ assertions): presets, adaptive lead, scales, clamping, step index and input-order monotonicity.
+* Version bumped in `mod.json`, `CMakeLists.txt`, `about.md`, README (EN/ID) and the release workflow. Release package: `click-before-frames-v2.0.0.geode` + GitHub Release `v2.0.0`.
+* Developer: **Aluxs** — GitHub **[@Aluxs-arch](https://github.com/Aluxs-arch)**.
+
+**Bahasa Indonesia**
+
+* **Jeda adaptif (mode Auto, kini bawaan):** jeda tidak lagi kaku 4,17 ms, melainkan sama dengan satu step fisika *asli* frame saat ini, sehingga otomatis menyesuaikan FPS, timewarp, lag, dan Physics Bypass. Selalu dibatasi ke interval frame terukur.
+* **Preset:** `Custom`, `Vanilla` (tanpa jeda), `One Step`, `Half Frame`, `Full Frame` (semua klik di step fisika pertama). Preset menimpa pengaturan jeda individu untuk pergantian cepat.
+* **Jeda per-input:** skala terpisah opsional untuk pelepasan (tahan orb, dash orb) dan Player 2 saat dual, 0–200%. `0%` membuat input tersebut tetap di waktu sub-frame persisnya.
+* **Overlay kalibrasi/debug:** HUD terlokalisasi berisi interval frame terukur, step fisika saat ini (`n/total`), jumlah klik yang pindah ke step pertama, dan total latensi yang dihemat. Jeda Auto/Manual bisa dikalibrasi dengan angka nyata.
+* **Statistik akhir attempt:** baris terlokalisasi di layar akhir berisi jumlah klik, jumlah yang masuk step pertama, dan milidetik yang dihemat. Watermark kini `BF2` / `BF2+PB`.
+* **Waktu lebih aman:** jeda dibatasi ke interval frame; dimatikan saat mati, pause, transisi editor/practice, `Nonaktifkan Mod`, dan mode `Klik per Step` (paritas vanilla penuh). Urutan tekan/lepas dijamin monoton dan kini diuji dengan tes acak.
+* Semua string UI baru tersedia dalam **English + Bahasa Indonesia** (`resources/lang/en.lang` / `id.lang`) dengan fallback bawaan.
+* Dokumen arsitektur dua bahasa baru: [`docs/HOW_IT_WORKS.md`](docs/HOW_IT_WORKS.md) lengkap dengan diagram timing frame/step.
+* Tes tanpa SDK diperluas (50+ assertion): preset, jeda adaptif, skala, clamp, indeks step, dan monotonisitas urutan input.
+* Versi dinaikkan di `mod.json`, `CMakeLists.txt`, `about.md`, README (EN/ID), dan workflow rilis. Paket rilis: `click-before-frames-v2.0.0.geode` + GitHub Release `v2.0.0`.
+* Developer: **Aluxs** — GitHub **[@Aluxs-arch](https://github.com/Aluxs-arch)**.
+
+---
+
 # v1.0.0
 
 **English**

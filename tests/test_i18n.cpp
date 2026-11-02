@@ -37,6 +37,9 @@ int main(int argc, char** argv) {
     check(loc.get("endscreen.caption") == "Sebelum Frame", "built-in Indonesian endscreen caption");
     check(loc.get("endscreen.credit").find("Aluxs") != std::string::npos, "developer credit is present");
     check(loc.get("indicator.vanilla") == "VANILLA 240 TPS", "vanilla/CoS label is available");
+    check(loc.get("indicator.auto") == "OTOMATIS", "v2 AUTO label is localized");
+    check(loc.get("debug.saved") == "hemat", "v2 debug key is localized");
+    check(loc.get("endscreen.stats-prefix") == "Klik", "v2 endscreen stats key is localized");
     check(loc.get("does.not.exist") == "does.not.exist", "unknown key falls back to the key");
 
     // Overlay files: write a fake resources/lang tree in a temp directory.
@@ -69,11 +72,14 @@ int main(int argc, char** argv) {
         std::string root = argv[1];
         loc.setLanguage(bf::Language::English, root);
         check(loc.get("meta.locale") == "en", "shipped en.lang is loaded");
+        check(loc.get("debug.moved") == "1st", "shipped en.lang has v2 debug keys");
+        check(loc.get("indicator.auto") == "AUTO", "shipped en.lang has v2 AUTO key");
         loc.setLanguage(bf::Language::Indonesian, root);
         check(loc.get("meta.locale") == "id", "shipped id.lang is loaded");
         check(loc.get("meta.language") == "Bahasa Indonesia", "shipped Indonesian metadata");
         check(loc.get("linux.body").find('\n') != std::string::npos, "shipped Indonesian popup has unescaped newlines");
         check(loc.get("endscreen.credit").find("Aluxs") != std::string::npos, "shipped credit names Aluxs");
+        check(loc.get("debug.saved") == "hemat", "shipped id.lang has v2 debug keys");
     }
     else {
         std::fprintf(stdout, "note: pass the repo root to also test the shipped .lang files\n");

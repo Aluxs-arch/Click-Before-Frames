@@ -38,12 +38,25 @@ bool softToggle;
 bool enableRightClick;
 
 // ---------------------------------------------------------------------------
-// "Before Frame" settings (see src/before_frame.hpp for the scheduler logic)
+// "Before Frame" v2 settings (see src/before_frame.hpp for the scheduler logic)
 // ---------------------------------------------------------------------------
 bool beforeFrameMode = true;       // false -> classic between-frames precision
-double beforeFrameLead = 0.00417;  // seconds, ~1 physics step at 60 FPS / 240 TPS
 bool showIndicator = false;        // localized in-game status label
+bool showDebugOverlay = false;     // localized frame/lead/step diagnostics
 bool clickOnSteps = false;         // true -> vanilla-like 240 TPS parity, never shift inputs
+bf::LeadProfile leadProfile;       // adaptive lead, presets, press/release & P2 scales
+
+// Per-attempt diagnostics, reset when a level starts.
+struct BeforeFrameStats {
+    long inputs = 0;
+    long movedToFirstStep = 0;
+    double leadSaved = 0.0;      // seconds
+    double frameIntervalMs = 0.0;
+    double effectiveLeadMs = 0.0;
+    int stepIndex = 0;
+    int stepCount = 0;
+};
+BeforeFrameStats beforeFrameStats;
 
 PlayerButtonCommand nextInput = EMPTY_INPUT;
 
@@ -95,6 +108,12 @@ void buildStepQueue(int stepCount) {
 	TimestampType deltaTime = currentFrameTime - lastFrameTime;
 	TimestampType stepDelta = deltaTime / stepCount;
 
+	// v2: measured frame interval + physics step are the basis for Auto lead,
+	// the calibration overlay and the end-of-level statistics.
+	beforeFrameStats.frameIntervalMs = deltaTime * 1000.0;
+	beforeFrameStats.stepCount = stepCount;
+	const bool leadActive = beforeFrameMode && !clickOnSteps && !softToggle;
+
 	int inputIdx = 0;
 	for (int i = 0; i < stepCount; i++) { // for each physics step of the frame
 		double elapsedTime = 0.0;
@@ -102,19 +121,40 @@ void buildStepQueue(int stepCount) {
 			PlayerButtonCommand input = inputVector[inputIdx];
 			GEODE_ANDROID(input.m_timestamp /= androidFactor;)
 
-			// BEFORE FRAME: move the click earlier by the configured lead and
-			// clamp it to the start of this frame's physics interval, so the
-			// click is applied before the visual frame. With a lead of one whole
-			// frame every click lands on the first physics step. With the mode
-			// off (or in Click on Steps mode, which must stay vanilla-accurate)
-			// this is a no-op and inputs keep their exact sub-step position.
+			// BEFORE FRAME v2: resolve an adaptive / per-input lead, then pull
+			// the click earlier and clamp it to the start of this frame's
+			// physics interval. Auto uses one real physics step (so it adapts
+			// to timewarp, lag and Physics Bypass); presets and separate
+			// release / P2 scales are applied by resolveLead(). Click on Steps
+			// stays vanilla-accurate because leadActive is false there.
+			const double lead = bf::resolveLead(
+				leadProfile,
+				input.m_isPush,
+				input.m_isPlayer2,
+				stepDelta,
+				deltaTime
+			);
+			beforeFrameStats.effectiveLeadMs = lead * 1000.0;
+
+			const TimestampType originalTime = input.m_timestamp;
 			input.m_timestamp = bf::beforeFrameTimestamp(
 				input.m_timestamp,
 				currentFrameTime,
 				lastFrameTime,
-				beforeFrameLead,
-				beforeFrameMode && !clickOnSteps
+				lead,
+				leadActive
 			);
+
+			if (leadActive && lead > 0.0) {
+				beforeFrameStats.inputs++;
+				if (input.m_timestamp <= lastFrameTime) beforeFrameStats.movedToFirstStep++;
+				if (input.m_timestamp < originalTime) {
+					beforeFrameStats.leadSaved += (originalTime - input.m_timestamp);
+				}
+				beforeFrameStats.stepIndex = bf::inputStepIndex(
+					input.m_timestamp, lastFrameTime, stepDelta, stepCount
+				);
+			}
 
 			if (input.m_timestamp - lastFrameTime < stepDelta * (i + 1)) { // if the next input in the vector happened on the current step, or if its the last step
 				double inputTime = fmod((input.m_timestamp - lastFrameTime), stepDelta) / stepDelta; // proportion of step elapsed at the time the input was made
@@ -258,6 +298,7 @@ class $modify(PlayLayer) {
 		#ifdef GEODE_IS_WINDOWS
 		if (linuxNative) updateKeybinds(); // update keybinds when you enter a level (for linux)
 		#endif
+		beforeFrameStats = {}; // v2: fresh diagnostics for this attempt
 		bool result = PlayLayer::init(level, useReplay, dontCreateObjects);
 		if (!softToggle) {
 			this->m_clickBetweenSteps = false;
@@ -306,17 +347,36 @@ void updateBeforeFrameIndicator(PlayLayer* pl) {
 		pl->addChild(label);
 	}
 
-	bool active = showIndicator && !softToggle && !skipUpdate;
+	bool active = (showIndicator || showDebugOverlay) && !softToggle && !skipUpdate;
 	label->setVisible(active);
 	if (!active) return;
 
 	char leadText[48];
-	snprintf(leadText, sizeof(leadText), "%.2f %s", beforeFrameLead * 1000.0, bf::tr("indicator.ms").c_str());
+	snprintf(leadText, sizeof(leadText), "%.2f %s",
+		beforeFrameStats.effectiveLeadMs, bf::tr("indicator.ms").c_str());
 
 	std::string text;
 	if (clickOnSteps) text = bf::tr("indicator.vanilla");
-	else if (beforeFrameMode) text = bf::tr("indicator.before-frame") + "  " + leadText;
-	else text = bf::tr("indicator.between-frames");
+	else if (!beforeFrameMode || leadProfile.preset == bf::Preset::Vanilla)
+		text = bf::tr("indicator.between-frames");
+	else {
+		text = bf::tr("indicator.before-frame") + "  " + leadText;
+		if (leadProfile.mode == bf::LeadMode::Auto && leadProfile.preset == bf::Preset::Custom)
+			text += "  " + bf::tr("indicator.auto");
+	}
+
+	// v2: localized calibration / diagnostics overlay
+	if (showDebugOverlay) {
+		char debugLine[224];
+		snprintf(debugLine, sizeof(debugLine),
+			"%s %.2f %s | %s %d/%d | %s %ld | %s %.1f %s",
+			bf::tr("debug.frame").c_str(), beforeFrameStats.frameIntervalMs, bf::tr("indicator.ms").c_str(),
+			bf::tr("debug.step").c_str(), beforeFrameStats.stepIndex + 1, beforeFrameStats.stepCount,
+			bf::tr("debug.moved").c_str(), beforeFrameStats.movedToFirstStep,
+			bf::tr("debug.saved").c_str(), beforeFrameStats.leadSaved * 1000.0,
+			bf::tr("indicator.ms").c_str());
+		text += "\n" + std::string(debugLine);
+	}
 	label->setString(text.c_str());
 }
 
@@ -569,18 +629,18 @@ class $modify(PlayerObject) {
 };
 
 /*
-Endscreen watermark ("BF" / "BF+PB") + localized caption and developer credit.
-The watermark only appears when the mod (or Physics Bypass) actually changes
-physics, so vanilla/CoS runs are not marked.
+v2 endscreen watermark ("BF2" / "BF2+PB") + localized caption, developer
+credit and per-attempt Before Frame statistics. The watermark only appears
+when the mod (or Physics Bypass) actually changes physics.
 */
 class $modify(EndLevelLayer) {
 	void customSetup() {
 		EndLevelLayer::customSetup();
 
 		std::string text;
-		if (physicsBypass) text = (softToggle || clickOnSteps) ? "PB" : "BF+PB";
+		if (physicsBypass) text = (softToggle || clickOnSteps) ? "PB" : "BF2+PB";
 		else if (softToggle || clickOnSteps) return;
-		else text = "BF";
+		else text = "BF2";
 
 		cocos2d::CCSize size = cocos2d::CCDirector::sharedDirector()->getWinSize();
 		CCLabelBMFont* indicator = CCLabelBMFont::create(text.c_str(), "bigFont.fnt");
@@ -605,6 +665,21 @@ class $modify(EndLevelLayer) {
 		credit->setOpacity(20);
 		credit->setScale(0.11f);
 		this->addChild(credit);
+
+		// v2: localized per-attempt statistics
+		char savedMs[32];
+		snprintf(savedMs, sizeof(savedMs), "%.1f", beforeFrameStats.leadSaved * 1000.0);
+		std::string statsText = bf::tr("endscreen.stats-prefix") + " "
+			+ std::to_string(beforeFrameStats.inputs) + " | "
+			+ bf::tr("debug.moved") + " " + std::to_string(beforeFrameStats.movedToFirstStep)
+			+ " | " + bf::tr("debug.saved") + " " + savedMs + " " + bf::tr("indicator.ms");
+
+		CCLabelBMFont* statsLabel = CCLabelBMFont::create(statsText.c_str(), "bigFont.fnt");
+		statsLabel->setPosition({ size.width - 2.f, size.height - 27.f });
+		statsLabel->setAnchorPoint({ 1.0f, 1.0f });
+		statsLabel->setOpacity(20);
+		statsLabel->setScale(0.10f);
+		this->addChild(statsLabel);
 	}
 };
 
@@ -780,8 +855,24 @@ void toggleMod(bool disable) {
 	}
 }
 
+// v2: read every lead-related setting into one profile. Called at load and
+// whenever any of those settings changes, so presets/scales always agree.
+void applyLeadProfile() {
+	Mod* mod = Mod::get();
+	beforeFrameMode = mod->getSettingValue<bool>("before-frame");
+	leadProfile.enabled = beforeFrameMode;
+	leadProfile.mode = bf::leadModeFromSetting(mod->getSettingValue<std::string>("lead-mode"));
+	leadProfile.manualLead = bf::msToSeconds(
+		std::clamp(mod->getSettingValue<double>("before-frame-lead"), 0.0, 16.67)
+	);
+	leadProfile.separateLeads = mod->getSettingValue<bool>("separate-leads");
+	leadProfile.releaseScale = std::clamp(mod->getSettingValue<double>("release-lead-scale"), 0.0, 200.0) / 100.0;
+	leadProfile.p2Scale = std::clamp(mod->getSettingValue<double>("p2-lead-scale"), 0.0, 200.0) / 100.0;
+	leadProfile.preset = bf::presetFromSetting(mod->getSettingValue<std::string>("preset"));
+}
+
 $on_mod(Loaded) {
-	log::info("Click Before Frames v1.0.0 by Aluxs - github.com/Aluxs-arch");
+	log::info("Click Before Frames v2.0.0 by Aluxs - github.com/Aluxs-arch");
 
 	Mod::get()->setSavedValue<bool>("is-linux", false);
 
@@ -798,22 +889,25 @@ $on_mod(Loaded) {
 	listenForSettingChanges<std::string>("language", applyLanguage);
 
 	// -----------------------------------------------------------------------
-	// Before Frame settings
+	// Before Frame v2: adaptive lead, presets, per-input scales
 	// -----------------------------------------------------------------------
-	beforeFrameMode = Mod::get()->getSettingValue<bool>("before-frame");
-	listenForSettingChanges<bool>("before-frame", +[](bool enable) {
-		beforeFrameMode = enable;
-	});
-
-	auto applyLead = +[](double milliseconds) {
-		beforeFrameLead = bf::msToSeconds(std::clamp(milliseconds, 0.0, 16.67));
-	};
-	applyLead(Mod::get()->getSettingValue<double>("before-frame-lead"));
-	listenForSettingChanges<double>("before-frame-lead", applyLead);
+	applyLeadProfile();
+	listenForSettingChanges<bool>("before-frame", +[](bool) { applyLeadProfile(); });
+	listenForSettingChanges<std::string>("lead-mode", +[](std::string) { applyLeadProfile(); });
+	listenForSettingChanges<double>("before-frame-lead", +[](double) { applyLeadProfile(); });
+	listenForSettingChanges<std::string>("preset", +[](std::string) { applyLeadProfile(); });
+	listenForSettingChanges<bool>("separate-leads", +[](bool) { applyLeadProfile(); });
+	listenForSettingChanges<double>("release-lead-scale", +[](double) { applyLeadProfile(); });
+	listenForSettingChanges<double>("p2-lead-scale", +[](double) { applyLeadProfile(); });
 
 	showIndicator = Mod::get()->getSettingValue<bool>("show-indicator");
 	listenForSettingChanges<bool>("show-indicator", +[](bool enable) {
 		showIndicator = enable;
+	});
+
+	showDebugOverlay = Mod::get()->getSettingValue<bool>("show-debug-overlay");
+	listenForSettingChanges<bool>("show-debug-overlay", +[](bool enable) {
+		showDebugOverlay = enable;
 	});
 
 	toggleMod(Mod::get()->getSettingValue<bool>("soft-toggle"));
