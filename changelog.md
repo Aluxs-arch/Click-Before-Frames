@@ -12,6 +12,7 @@
 * Marked Click Between Frames and CBF Lite as incompatible (identical hooks).
 * Added engine-independent unit tests for the scheduler and localization, plus a CI test job.
 * Added bilingual documentation: `README.md`, `README.id.md`, `about.md`, `support.md`.
+* Release package: CI merges Windows, macOS, Android32 and Android64 binaries into `click-before-frames-v1.0.0.geode` and attaches it to the v1.0.0 GitHub Release. The iOS binary is pending an upstream Geode bindings fix.
 
 **Bahasa Indonesia**
 
@@ -25,3 +26,4 @@
 * Click Between Frames dan CBF Lite ditandai tidak kompatibel (hook yang sama).
 * Tes unit untuk penjadwal dan lokalisasi tanpa SDK, beserta job CI untuk tes.
 * Dokumentasi dua bahasa: `README.md`, `README.id.md`, `about.md`, `support.md`.
+* Paket rilis: CI menggabungkan binary Windows, macOS, Android32, dan Android64 menjadi `click-before-frames-v1.0.0.geode` lalu melampirkannya ke GitHub Release v1.0.0. Binary iOS menunggu perbaikan upstream Geode bindings.

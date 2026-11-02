@@ -125,8 +125,23 @@ bash tests/run.sh      # tes logika + i18n + JSON tanpa SDK
 `resources/linux-input.so` adalah helper hasil build untuk Linux/Wine (diabaikan
 Git). Bangun secara lokal dengan `bash src/linux/build.sh` (butuh
 `libevdev-dev`), atau biarkan CI yang membuatnya.
-`.github/workflows/multi-platform.yml` menjalankan tes unit lalu membangun paket
-Windows, macOS, iOS, Android32, Android64, serta helper tersebut.
+`.github/workflows/multi-platform.yml` menjalankan tes unit, membangun paket
+Windows, macOS, Android32, Android64 (plus iOS sebagai upaya terbaik), lalu
+menggabungkannya menjadi satu file `.geode` dan menerbitkannya sebagai aset
+GitHub Release.
+
+## Rilis
+
+Paket siap pakai ada di
+[GitHub Releases](https://github.com/Aluxs-arch/Click-Before-Frames/releases):
+`click-before-frames-v1.0.0.geode` (Windows, macOS, Android32, Android64).
+Pasang dengan membuka file `.geode` lewat Geode, atau masukkan ke folder mods
+Geode.
+
+> Binary iOS saat ini tertahan oleh masalah upstream Geode bindings (tipe FMOD
+> pada source bindings hasil generate), bukan kode mod ini. Kode `src/main.cpp`
+> dan `src/i18n.cpp` tetap bisa dikompilasi untuk iOS; binary iOS akan
+> ditambahkan setelah toolchain upstream diperbaiki.
 
 ## Kredit & lisensi
 
