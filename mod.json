@@ -1,0 +1,159 @@
+{
+	"geode": "5.6.0",
+	"gd": {
+		"win": "2.2081",
+		"android": "2.2081",
+		"mac": "2.2081",
+		"ios": "2.2081"
+	},
+	"version": "v1.0.0",
+	"id": "aluxs.click_before_frames",
+	"name": "Click Before Frames",
+	"developer": "Aluxs",
+	"description": "Register clicks before each visual frame for lower input delay. / Catat klik sebelum setiap frame visual untuk mengurangi jeda input.",
+	"incompatibilities": {
+		"syzzi.click_between_frames": ">=1.0.0",
+		"zmx.cbf-lite": ">=1.0.0"
+	},
+	"tags": [
+		"performance",
+		"gameplay",
+		"enhancement"
+	],
+	"links": {
+		"source": "https://github.com/Aluxs-arch/Click-Before-Frames",
+		"homepage": "https://github.com/Aluxs-arch"
+	},
+	"issues": {
+		"info": "Report bugs in English or Bahasa Indonesia / Laporkan bug dalam bahasa Inggris atau Indonesia.",
+		"url": "https://github.com/Aluxs-arch/Click-Before-Frames/issues"
+	},
+	"settings": {
+		"language": {
+			"name": "Language / Bahasa",
+			"description": "EN: Language used for in-game labels and popups.\nID: Bahasa yang dipakai untuk label dan popup di dalam game.\n\nSettings in the mod menu are written in both languages / Pengaturan di menu mod ditulis dalam dua bahasa.",
+			"type": "string",
+			"one-of": ["English", "Bahasa Indonesia"],
+			"default": "English"
+		},
+		"functionality-category": {
+			"name": "Functionality / Fungsionalitas",
+			"type": "title"
+		},
+		"soft-toggle": {
+			"name": "Disable Mod / Nonaktifkan Mod",
+			"description": "EN: Disable Before Frame without restarting Geometry Dash. This does not disable Physics Bypass if you enabled it!\nID: Nonaktifkan Before Frame tanpa memulai ulang Geometry Dash. Ini TIDAK menonaktifkan Physics Bypass jika sudah diaktifkan!",
+			"type": "bool",
+			"default": false
+		},
+		"before-frame": {
+			"name": "Before Frame Mode / Mode Before Frame",
+			"description": "EN: Pull clicks earlier (before the visual frame) by the configured lead instead of applying them at their exact sub-frame position. Turn this off for classic between-frames precision.\nID: Geser klik lebih awal (sebelum frame visual) sesuai jeda, bukan pada posisi sub-frame persisnya. Matikan untuk presisi klasik di antara frame.",
+			"type": "bool",
+			"default": true
+		},
+		"before-frame-lead": {
+			"name": "Pre-Frame Lead (ms) / Jeda Awal (ms)",
+			"description": "EN: How many milliseconds each click is pulled earlier. 0 = classic precision; 4.17 = one 240 TPS physics step at 60 FPS; 16.67 = one whole 60 FPS frame, which applies every click on the first physics step, before the frame is drawn.\nID: Berapa milidetik klik digeser lebih awal. 0 = presisi klasik; 4,17 = satu step fisika 240 TPS pada 60 FPS; 16,67 = satu frame penuh 60 FPS, sehingga semua klik diterapkan di step fisika pertama sebelum frame digambar.",
+			"type": "float",
+			"default": 4.17,
+			"min": 0.0,
+			"max": 16.67,
+			"control": {
+				"slider": true,
+				"slider-step": 0.01,
+				"arrows": true,
+				"arrow-step": 0.1,
+				"input": true
+			},
+			"enable-if": "before-frame"
+		},
+		"show-indicator": {
+			"name": "Show Status Label / Tampilkan Label Status",
+			"description": "EN: Show a small localized label with the active mode and lead value while playing.\nID: Tampilkan label kecil sesuai bahasa yang dipilih, berisi mode aktif dan nilai jeda saat bermain.",
+			"type": "bool",
+			"default": false
+		},
+		"safe-mode": {
+			"name": "Safe Mode / Mode Aman",
+			"description": "EN: Disable progress and stats on rated levels.\nID: Nonaktifkan progres dan statistik pada level ber-rating.",
+			"type": "bool",
+			"default": false
+		},
+		"click-on-steps": {
+			"name": "Click on Steps / Klik per Step",
+			"description": "EN: Only register inputs with 240 TPS precision. Should have identical physics to vanilla.\nID: Hanya catat input dengan presisi 240 TPS. Seharusnya fisikanya sama dengan vanilla.",
+			"type": "bool",
+			"default": false
+		},
+		"performance-category": {
+			"name": "Performance / Performa",
+			"type": "title",
+			"platforms": ["win"]
+		},
+		"mouse-fix": {
+			"name": "Reduce Mouse Lag / Kurangi Lag Mouse",
+			"description": "EN: Reduce lag when using high polling rate mice. Experimental, may break things.\nID: Kurangi lag saat memakai mouse dengan polling rate tinggi. Eksperimental, bisa menimbulkan masalah.",
+			"type": "bool",
+			"default": false,
+			"platforms": ["win"]
+		},
+		"precision-fix": {
+			"name": "Precision Fix / Perbaikan Presisi",
+			"description": "EN: Improve input precision by preventing framerate desync. Experimental, may break things.\nID: Tingkatkan presisi input dengan mencegah desinkronisasi framerate. Eksperimental, bisa menimbulkan masalah.",
+			"type": "bool",
+			"default": true,
+			"platforms": ["win"]
+		},
+		"pb-category": {
+			"name": "Physics Bypass / Lewati Fisika",
+			"type": "title",
+			"platforms": ["win"]
+		},
+		"physics-bypass": {
+			"name": "Enable Physics Bypass / Aktifkan Physics Bypass",
+			"description": "EN: Reduces stuttering on some FPS values. Active even if \"Disable Mod\" is checked. THIS WILL ALTER PHYSICS AND MAY BREAK SOME LEVELS! DON'T USE THIS IF YOUR LIST/LEADERBOARD BANS PHYSICS BYPASS!\nID: Mengurangi stutter pada sebagian nilai FPS. Tetap aktif walaupun \"Nonaktifkan Mod\" dicentang. INI MENGUBAH FISIKA DAN BISA MERUSAK BEBERAPA LEVEL! JANGAN PAKAI JIKA LIST/LEADERBOARD MELARANG PHYSICS BYPASS!",
+			"type": "bool",
+			"default": false,
+			"platforms": ["win"]
+		},
+		"bypass-mode": {
+			"name": "Physics Bypass Mode / Mode Physics Bypass",
+			"description": "EN: 2.2 mode = as few collision checks per frame as possible (minimum 240 checks per second). 2.1 mode = 4 collision checks per frame at 60 FPS or above.\nID: Mode 2.2 = pemeriksaan tabrakan seminimal mungkin per frame (minimal 240 pemeriksaan per detik). Mode 2.1 = 4 pemeriksaan tabrakan per frame pada 60 FPS ke atas.",
+			"type": "string",
+			"one-of": ["2.2", "2.1"],
+			"default": "2.2",
+			"platforms": ["win"]
+		},
+		"linux-category": {
+			"name": "Linux (Wine) / Linux (Wine)",
+			"type": "title",
+			"platforms": ["win"]
+		},
+		"wine-workaround": {
+			"name": "Wine Workaround / Solusi Wine",
+			"description": "EN: Wine doesn't let you read keyboard input between frames, so this is a workaround. Only disable if you have issues (and don't play with keyboard if you disable it).\nID: Wine tidak mengizinkan input keyboard dibaca di antara frame, jadi ini solusinya. Matikan hanya jika bermasalah (dan jangan main dengan keyboard jika dimatikan).",
+			"type": "bool",
+			"default": true,
+			"requires-restart": true,
+			"enable-if": "saved:you-must-be-on-linux-to-change-this",
+			"platforms": ["win"]
+		},
+		"right-click": {
+			"name": "Right Click P2 / Klik Kanan P2",
+			"description": "EN: Use right click for player 2 jump.\nID: Pakai klik kanan untuk lompatan player 2.",
+			"type": "bool",
+			"default": false,
+			"enable-if": "saved:you-must-be-on-linux-to-change-this && wine-workaround",
+			"platforms": ["win"]
+		}
+	},
+	"resources": {
+		"files": [
+			"resources/linux-input.so"
+		],
+		"folders": [
+			"resources/lang"
+		]
+	}
+}

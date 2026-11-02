@@ -1,0 +1,15 @@
+# Click Before Frames - Bahasa Indonesia (id)
+# Format: key=value. Gunakan \n untuk baris baru. Baris yang diawali # adalah komentar.
+# Nilai di sini menimpa string bawaan, jadi penerjemah bisa mengubah file ini
+# tanpa perlu membangun ulang mod.
+
+meta.locale=id
+meta.language=Bahasa Indonesia
+indicator.before-frame=SEBELUM FRAME
+indicator.between-frames=DI ANTARA FRAME
+indicator.ms=ms
+indicator.vanilla=VANILLA 240 TPS
+endscreen.caption=Sebelum Frame
+endscreen.credit=oleh Aluxs - github.com/Aluxs-arch
+linux.title=Click Before Frames - Linux
+linux.body=Gagal membaca perangkat input.\nPada sebagian besar distro, ini bisa diatasi dengan perintah: <cr>sudo usermod -aG input $USER</c> (restart sesudahnya; ini sedikit mengurangi keamanan sistem).\nJika masalah berlanjut, silakan buka issue di github.com/Aluxs-arch/Click-Before-Frames.

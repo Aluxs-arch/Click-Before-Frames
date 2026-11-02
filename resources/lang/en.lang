@@ -1,0 +1,15 @@
+# Click Before Frames - English (en)
+# Format: key=value. Use \n for a line break. Lines starting with # are comments.
+# These values override the built-in strings, so translators can edit this file
+# without rebuilding the mod.
+
+meta.locale=en
+meta.language=English
+indicator.before-frame=BEFORE FRAME
+indicator.between-frames=BETWEEN FRAMES
+indicator.ms=ms
+indicator.vanilla=VANILLA 240 TPS
+endscreen.caption=Before Frame
+endscreen.credit=by Aluxs - github.com/Aluxs-arch
+linux.title=Click Before Frames - Linux
+linux.body=Failed to read input devices.\nOn most distributions, this can be resolved with the following command: <cr>sudo usermod -aG input $USER</c> (reboot afterward; this will make your system slightly less secure).\nIf the issue persists, please open an issue on github.com/Aluxs-arch/Click-Before-Frames.
