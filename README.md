@@ -1,5 +1,9 @@
 # Click Before Frames
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Aluxs-arch/Click-Before-Frames/refs/heads/main/logo.png" width="200" />
+</p>
+
 **English** | [Bahasa Indonesia](README.id.md)
 
 > **Developer:** Aluxs &nbsp;•&nbsp; **GitHub:** [@Aluxs-arch](https://github.com/Aluxs-arch)
