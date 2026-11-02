@@ -2,7 +2,7 @@
 
 **English**
 
-* First release of **Click Before Frames**, a fork of Click Between Frames v1.5.0 (GD 2.2081).
+* First release of **Click Before Frames**, a fork of Click Between Frames v1.5.0 (GD 2.2081). Targets Geode 5.6.0+ (5.3.0 SDK headers contain a duplicate `CCFileUtilsWin32::init` declaration that breaks current builds).
 * New **Before Frame** scheduler: clicks are pulled earlier by a configurable lead and clamped to the start of the frame's physics interval; a full-frame lead applies every click on the first physics step (`src/before_frame.hpp`).
 * New **Pre-Frame Lead (ms)** setting (0–16.67 ms, default 4.17 ms = one 240 TPS step at 60 FPS).
 * New **Before Frame Mode** toggle — switch back to classic between-frames precision at any time; the lead is skipped in Click on Steps mode to keep vanilla parity.
@@ -15,7 +15,7 @@
 
 **Bahasa Indonesia**
 
-* Rilis perdana **Click Before Frames**, fork dari Click Between Frames v1.5.0 (GD 2.2081).
+* Rilis perdana **Click Before Frames**, fork dari Click Between Frames v1.5.0 (GD 2.2081). Menargetkan Geode 5.6.0+ (header SDK 5.3.0 memiliki deklarasi ganda `CCFileUtilsWin32::init` yang menggagalkan build saat ini).
 * Penjadwal **Before Frame** baru: klik digeser lebih awal sesuai jeda dan dibatasi ke awal interval fisika frame; jeda satu frame penuh menerapkan semua klik di step fisika pertama (`src/before_frame.hpp`).
 * Pengaturan **Jeda Awal (ms)** baru (0–16,67 ms, bawaan 4,17 ms = satu step 240 TPS pada 60 FPS).
 * Toggle **Mode Before Frame** baru — bisa kembali ke presisi klasik di antara frame kapan saja; jeda dilewati pada mode Klik per Step agar fisikanya tetap vanilla.

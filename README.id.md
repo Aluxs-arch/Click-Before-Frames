@@ -69,7 +69,7 @@ berkas ini berbahasa Indonesia, sedangkan [`about.md`](about.md) dan
 
 ## Instalasi
 
-1. Pasang [Geode](https://geode-sdk.org/install/).
+1. Pasang [Geode](https://geode-sdk.org/install/) **5.6.0 atau lebih baru**.
 2. Pasang **Click Before Frames** (dari index Geode, atau bangun paket `.geode`
    sendiri — lihat [Membangun](#membangun)).
 3. Jangan aktifkan Click Between Frames atau CBF Lite bersamaan; keduanya

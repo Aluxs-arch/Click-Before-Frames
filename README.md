@@ -69,7 +69,7 @@ Documentation is bilingual too: this file is English,
 
 ## Installation
 
-1. Install [Geode](https://geode-sdk.org/install/).
+1. Install [Geode](https://geode-sdk.org/install/) **5.6.0 or newer**.
 2. Install **Click Before Frames** (from the Geode index, or build the `.geode`
    package yourself — see [Building](#building)).
 3. Do **not** enable Click Between Frames or CBF Lite at the same time; they are
