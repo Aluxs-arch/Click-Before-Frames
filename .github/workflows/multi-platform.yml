@@ -115,8 +115,8 @@ jobs:
             exit 1
           fi
           mkdir -p release
-          cp "$FILE" release/click-before-frames-v1.0.0.geode
-          echo "file=release/click-before-frames-v1.0.0.geode" >> "$GITHUB_OUTPUT"
+          cp "$FILE" release/click-before-frames-v2.0.0.geode
+          echo "file=release/click-before-frames-v2.0.0.geode" >> "$GITHUB_OUTPUT"
           ls -lh release/
 
       - uses: actions/upload-artifact@v4
@@ -125,24 +125,24 @@ jobs:
           path: ${{ steps.pkg.outputs.file }}
 
       - name: Create GitHub Release + tag with the .geode file
-        if: github.event_name == 'push' && github.ref == 'refs/heads/arena/2095aaf8-click-before-frames'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/arena/abe17a81-click-before-frames'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          if gh release view v1.0.0 >/dev/null 2>&1; then
-            echo "Release v1.0.0 already exists - uploading the asset"
-            gh release upload v1.0.0 release/click-before-frames-v1.0.0.geode --clobber
+          if gh release view v2.0.0 >/dev/null 2>&1; then
+            echo "Release v2.0.0 already exists - uploading the asset"
+            gh release upload v2.0.0 release/click-before-frames-v2.0.0.geode --clobber
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f release/click-before-frames-v1.0.0.geode
-          git commit -m "release: add v1.0.0 .geode package [skip ci]"
-          git tag v1.0.0
-          git push origin v1.0.0
-          gh release create v1.0.0 release/click-before-frames-v1.0.0.geode \
+          git add -f release/click-before-frames-v2.0.0.geode
+          git commit -m "release: add v2.0.0 .geode package [skip ci]"
+          git tag v2.0.0
+          git push origin v2.0.0
+          gh release create v2.0.0 release/click-before-frames-v2.0.0.geode \
             --verify-tag \
-            --title "Click Before Frames v1.0.0" \
+            --title "Click Before Frames v2.0.0" \
             --notes-file changelog.md

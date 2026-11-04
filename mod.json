@@ -6,11 +6,11 @@
 		"mac": "2.2081",
 		"ios": "2.2081"
 	},
-	"version": "v1.0.0",
+	"version": "v2.0.0",
 	"id": "aluxs.click_before_frames",
 	"name": "Click Before Frames",
 	"developer": "Aluxs",
-	"description": "Register clicks before each visual frame for lower input delay. / Catat klik sebelum setiap frame visual untuk mengurangi jeda input.",
+	"description": "Adaptive before-frame click timing with presets, per-input leads and EN/ID support. / Waktu klik sebelum frame adaptif dengan preset, jeda per-input, dan dukungan EN/ID.",
 	"incompatibilities": {
 		"syzzi.click_between_frames": ">=1.0.0",
 		"zmx.cbf-lite": ">=1.0.0"
@@ -31,7 +31,7 @@
 	"settings": {
 		"language": {
 			"name": "Language / Bahasa",
-			"description": "EN: Language used for in-game labels and popups.\nID: Bahasa yang dipakai untuk label dan popup di dalam game.\n\nSettings in the mod menu are written in both languages / Pengaturan di menu mod ditulis dalam dua bahasa.",
+			"description": "EN: Language used for in-game labels, diagnostics and popups.\nID: Bahasa yang dipakai untuk label, diagnostik, dan popup di dalam game.\n\nSettings in the mod menu are written in both languages / Pengaturan di menu mod ditulis dalam dua bahasa.",
 			"type": "string",
 			"one-of": ["English", "Bahasa Indonesia"],
 			"default": "English"
@@ -48,13 +48,31 @@
 		},
 		"before-frame": {
 			"name": "Before Frame Mode / Mode Before Frame",
-			"description": "EN: Pull clicks earlier (before the visual frame) by the configured lead instead of applying them at their exact sub-frame position. Turn this off for classic between-frames precision.\nID: Geser klik lebih awal (sebelum frame visual) sesuai jeda, bukan pada posisi sub-frame persisnya. Matikan untuk presisi klasik di antara frame.",
+			"description": "EN: Pull clicks earlier (before the visual frame) instead of applying them at their exact sub-frame position. Turn this off for classic between-frames precision.\nID: Geser klik lebih awal (sebelum frame visual), bukan pada posisi sub-frame persisnya. Matikan untuk presisi klasik di antara frame.",
 			"type": "bool",
 			"default": true
 		},
+		"lead-category": {
+			"name": "Lead & Presets / Jeda & Preset",
+			"type": "title"
+		},
+		"preset": {
+			"name": "Preset / Preset",
+			"description": "EN: Quick profile. Custom = use the settings below. Vanilla = no lead. One Step = one real physics step. Half Frame / Full Frame = 50% / 100% of the measured frame interval (Full Frame puts every click on the first step).\nID: Profil cepat. Custom = pakai pengaturan di bawah. Vanilla = tanpa jeda. One Step = satu step fisika asli. Half Frame / Full Frame = 50% / 100% dari interval frame terukur (Full Frame menaruh semua klik di step pertama).",
+			"type": "string",
+			"one-of": ["Custom", "Vanilla", "One Step", "Half Frame", "Full Frame"],
+			"default": "Custom"
+		},
+		"lead-mode": {
+			"name": "Lead Mode / Mode Jeda",
+			"description": "EN: Auto = lead follows one real physics step of the current frame (adapts to FPS, timewarp, lag and Physics Bypass). Manual = use the millisecond value below. Only used when Preset = Custom.\nID: Auto = jeda mengikuti satu step fisika asli frame saat ini (menyesuaikan FPS, timewarp, lag, dan Physics Bypass). Manual = pakai nilai milidetik di bawah. Hanya dipakai saat Preset = Custom.",
+			"type": "string",
+			"one-of": ["Auto", "Manual"],
+			"default": "Auto"
+		},
 		"before-frame-lead": {
-			"name": "Pre-Frame Lead (ms) / Jeda Awal (ms)",
-			"description": "EN: How many milliseconds each click is pulled earlier. 0 = classic precision; 4.17 = one 240 TPS physics step at 60 FPS; 16.67 = one whole 60 FPS frame, which applies every click on the first physics step, before the frame is drawn.\nID: Berapa milidetik klik digeser lebih awal. 0 = presisi klasik; 4,17 = satu step fisika 240 TPS pada 60 FPS; 16,67 = satu frame penuh 60 FPS, sehingga semua klik diterapkan di step fisika pertama sebelum frame digambar.",
+			"name": "Manual Lead (ms) / Jeda Manual (ms)",
+			"description": "EN: Milliseconds each click is pulled earlier, used with Preset = Custom + Lead Mode = Manual. 0 = classic; 4.17 = one 240 TPS step at 60 FPS; 16.67 = a whole 60 FPS frame (all clicks on the first step).\nID: Milidetik klik digeser lebih awal, dipakai saat Preset = Custom + Mode Jeda = Manual. 0 = klasik; 4,17 = satu step 240 TPS pada 60 FPS; 16,67 = satu frame penuh 60 FPS (semua klik di step pertama).",
 			"type": "float",
 			"default": 4.17,
 			"min": 0.0,
@@ -68,9 +86,57 @@
 			},
 			"enable-if": "before-frame"
 		},
+		"separate-leads": {
+			"name": "Separate Leads / Jeda Terpisah",
+			"description": "EN: Give releases (orb holds, dash orb releases) and Player 2 in duals their own lead scale. Keeps press timing unchanged.\nID: Beri skala jeda tersendiri untuk pelepasan (tahan orb, dash orb) dan Player 2 saat dual. Waktu penekanan tetap tidak berubah.",
+			"type": "bool",
+			"default": false
+		},
+		"release-lead-scale": {
+			"name": "Release Lead (%) / Jeda Lepas (%)",
+			"description": "EN: Lead scale for release inputs. 0% = releases stay at their exact sub-frame time (useful for orb holds); 100% = same as presses.\nID: Skala jeda untuk input lepas. 0% = pelepasan tetap di waktu sub-frame persisnya (berguna untuk tahan orb); 100% = sama seperti penekanan.",
+			"type": "float",
+			"default": 100.0,
+			"min": 0.0,
+			"max": 200.0,
+			"control": {
+				"slider": true,
+				"slider-step": 1.0,
+				"arrows": true,
+				"arrow-step": 5.0,
+				"input": true
+			},
+			"enable-if": "separate-leads"
+		},
+		"p2-lead-scale": {
+			"name": "P2 Lead (%) / Jeda P2 (%)",
+			"description": "EN: Lead scale for Player 2 inputs (duals). 0% = P2 keeps exact sub-frame timing.\nID: Skala jeda untuk input Player 2 (dual). 0% = P2 tetap memakai waktu sub-frame persisnya.",
+			"type": "float",
+			"default": 100.0,
+			"min": 0.0,
+			"max": 200.0,
+			"control": {
+				"slider": true,
+				"slider-step": 1.0,
+				"arrows": true,
+				"arrow-step": 5.0,
+				"input": true
+			},
+			"enable-if": "separate-leads"
+		},
+		"diagnostics-category": {
+			"name": "Diagnostics / Diagnostik",
+			"type": "title"
+		},
 		"show-indicator": {
 			"name": "Show Status Label / Tampilkan Label Status",
-			"description": "EN: Show a small localized label with the active mode and lead value while playing.\nID: Tampilkan label kecil sesuai bahasa yang dipilih, berisi mode aktif dan nilai jeda saat bermain.",
+			"description": "EN: Show a small localized label with the active mode and effective lead while playing.\nID: Tampilkan label kecil sesuai bahasa pilihan, berisi mode aktif dan jeda efektif saat bermain.",
+			"type": "bool",
+			"default": false
+		},
+		"show-debug-overlay": {
+			"name": "Show Debug Overlay / Tampilkan Overlay Debug",
+			"description": "EN: Add measured frame time, current physics step, clicks moved to the first step and total latency saved. Also used to calibrate Auto/Manual lead.\nID: Tambahkan interval frame terukur, step fisika saat ini, jumlah klik yang pindah ke step pertama, dan total latensi yang dihemat. Berguna juga untuk kalibrasi jeda Auto/Manual.",
 			"type": "bool",
 			"default": false
 		},
@@ -82,7 +148,7 @@
 		},
 		"click-on-steps": {
 			"name": "Click on Steps / Klik per Step",
-			"description": "EN: Only register inputs with 240 TPS precision. Should have identical physics to vanilla.\nID: Hanya catat input dengan presisi 240 TPS. Seharusnya fisikanya sama dengan vanilla.",
+			"description": "EN: Only register inputs with 240 TPS precision. Should have identical physics to vanilla; Before Frame leads are disabled here.\nID: Hanya catat input dengan presisi 240 TPS. Seharusnya fisikanya sama dengan vanilla; jeda Before Frame dimatikan di sini.",
 			"type": "bool",
 			"default": false
 		},

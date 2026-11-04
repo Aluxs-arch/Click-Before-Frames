@@ -74,6 +74,93 @@ int main() {
     check(static_cast<int>(classicTime / stepDelta) == 3 && static_cast<int>(ledTime / stepDelta) == 2,
         "one-step lead moves a late click one physics step earlier");
 
+    // -----------------------------------------------------------------------
+    // v2.0.0: adaptive lead, presets, per-input scales, step index
+    // -----------------------------------------------------------------------
+    check(bf::leadModeFromSetting("Auto") == bf::LeadMode::Auto, "Auto lead mode parsed");
+    check(bf::leadModeFromSetting("Manual") == bf::LeadMode::Manual, "Manual lead mode parsed");
+    check(bf::presetFromSetting("Vanilla") == bf::Preset::Vanilla, "Vanilla preset parsed");
+    check(bf::presetFromSetting("One Step") == bf::Preset::OneStep, "One Step preset parsed");
+    check(bf::presetFromSetting("Half Frame") == bf::Preset::HalfFrame, "Half Frame preset parsed");
+    check(bf::presetFromSetting("Full Frame") == bf::Preset::FullFrame, "Full Frame preset parsed");
+    check(bf::presetFromSetting("Custom") == bf::Preset::Custom, "Custom preset parsed");
+    check(bf::presetFromSetting("unknown") == bf::Preset::Custom, "unknown preset falls back to Custom");
+
+    // Auto lead equals exactly one physics step, clamped to the frame.
+    check(near(bf::autoLead(stepDelta, frameStart), stepDelta), "auto lead = one physics step");
+    check(near(bf::autoLead(frameStart * 4.0, frameStart), frameStart), "auto lead clamped to frame interval");
+    check(near(bf::autoLead(0.0, frameStart), 0.0), "auto lead with zero step is 0");
+    check(near(bf::autoLead(stepDelta, 0.0), 0.0), "auto lead with zero frame is 0");
+
+    bf::LeadProfile profile; // defaults: enabled, Auto, Custom
+    check(near(bf::resolveLead(profile, true, false, stepDelta, frameStart), stepDelta),
+        "default profile uses adaptive one-step lead");
+
+    profile.mode = bf::LeadMode::Manual;
+    profile.manualLead = bf::msToSeconds(4.17);
+    check(near(bf::resolveLead(profile, true, false, stepDelta, frameStart), 0.00417),
+        "manual profile uses the millisecond value");
+
+    // Presets override the individual settings.
+    profile.preset = bf::Preset::Vanilla;
+    check(near(bf::resolveLead(profile, true, false, stepDelta, frameStart), 0.0), "Vanilla preset = no lead");
+    profile.preset = bf::Preset::HalfFrame;
+    check(near(bf::resolveLead(profile, true, false, stepDelta, frameStart), frameStart * 0.5), "Half Frame preset");
+    profile.preset = bf::Preset::FullFrame;
+    check(near(bf::resolveLead(profile, true, false, stepDelta, frameStart), frameStart), "Full Frame preset");
+    profile.preset = bf::Preset::OneStep;
+    check(near(bf::resolveLead(profile, true, false, stepDelta, frameStart), stepDelta), "One Step preset");
+
+    // Every lead is clamped to the frame interval (no time travel).
+    profile.preset = bf::Preset::Custom;
+    profile.mode = bf::LeadMode::Manual;
+    profile.manualLead = 1.0;
+    check(near(bf::resolveLead(profile, true, false, stepDelta, frameStart), frameStart), "lead clamped to frame");
+    profile.enabled = false;
+    check(near(bf::resolveLead(profile, true, false, stepDelta, frameStart), 0.0), "disabled profile = 0");
+
+    // Separate release / P2 scales only apply when enabled.
+    profile.enabled = true;
+    profile.manualLead = bf::msToSeconds(4.0);
+    profile.releaseScale = 0.0;
+    profile.p2Scale = 0.5;
+    check(near(bf::resolveLead(profile, true, false, stepDelta, frameStart), 0.004), "press lead unaffected by scales");
+    profile.separateLeads = true;
+    check(near(bf::resolveLead(profile, false, false, stepDelta, frameStart), 0.0), "release scale 0% keeps exact timing");
+    check(near(bf::resolveLead(profile, true, true, stepDelta, frameStart), 0.002), "P2 scale 50%");
+    check(near(bf::resolveLead(profile, false, true, stepDelta, frameStart), 0.0), "release + P2 scales combine");
+
+    // Full-frame lead really moves a late click to step 0.
+    profile.separateLeads = false;
+    profile.preset = bf::Preset::FullFrame;
+    double fullLead = bf::resolveLead(profile, true, false, stepDelta, frameStart);
+    check(bf::inputStepIndex(
+            bf::beforeFrameTimestamp(frameStart - 0.001, frameStart, 0.0, fullLead, true),
+            0.0, stepDelta, 4) == 0,
+        "Full Frame preset lands on the first physics step");
+    check(bf::inputStepIndex(frameStart - 0.001, 0.0, stepDelta, 4) == 3,
+        "classic late click lands on the last physics step");
+
+    // Monotonicity: sorted inputs must stay sorted after the transform,
+    // otherwise a press/release pair could be swapped.
+    bf::LeadProfile mono;
+    mono.mode = bf::LeadMode::Manual;
+    mono.manualLead = bf::msToSeconds(6.0);
+    mono.separateLeads = true;
+    mono.releaseScale = 0.25;
+    mono.p2Scale = 1.5;
+    bool monotonic = true;
+    for (int trial = 0; trial < 200; ++trial) {
+        double t0 = 0.001 + (trial % 13) * 0.001;
+        double t1 = t0 + 0.0007;
+        double l0 = bf::resolveLead(mono, true, false, stepDelta, frameStart);
+        double l1 = bf::resolveLead(mono, false, true, stepDelta, frameStart);
+        double a = bf::beforeFrameTimestamp(t0, frameStart, 0.0, l0, true);
+        double b = bf::beforeFrameTimestamp(t1, frameStart, 0.0, l1, true);
+        if (a > b) { monotonic = false; break; }
+    }
+    check(monotonic, "timestamp transform preserves input order across 200 trials");
+
     if (failures) {
         std::fprintf(stderr, "%d test(s) failed\n", failures);
         return EXIT_FAILURE;
